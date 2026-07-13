@@ -57,8 +57,9 @@ PATCH /users/:id/role   { "role": "TECHNICIAN" }
 ## Expor o ambiente local (Cloudflare Tunnel)
 
 Para compartilhar o ambiente de dev publicamente (demo, teste em outro dispositivo,
-webhook externo) sem abrir portas no roteador, use o serviço `cloudflared` do compose.
-Ele fica atrás de um profile e não sobe com `docker compose up` normal.
+webhook externo) sem abrir portas no roteador, use um dos serviços `cloudflared*` do
+compose. Nenhum dos dois sobe com `docker compose up` normal (cada um fica atrás do
+seu profile).
 
 **Modo rápido** (sem conta Cloudflare, gera uma URL aleatória `*.trycloudflare.com`,
 válida enquanto o container estiver rodando):
@@ -75,9 +76,11 @@ disso, defina `CLOUDFLARE_TUNNEL_URL=http://api:3000` no `.env`.
 **Modo nomeado** (domínio próprio, URL fixa): crie um túnel em
 [Cloudflare Zero Trust → Networks → Tunnels](https://one.dash.cloudflare.com/), adicione
 "Public Hostnames" apontando para `http://web:5173` e/ou `http://api:3000`, copie o
-token gerado e coloque em `CLOUDFLARE_TUNNEL_TOKEN` no `.env`. Com o token preenchido,
-o mesmo comando (`docker compose --profile tunnel up cloudflared`) sobe o túnel nomeado
-em vez do rápido.
+token gerado e coloque em `CLOUDFLARE_TUNNEL_TOKEN` no `.env`, então:
+
+```bash
+docker compose --profile tunnel-named up cloudflared-named
+```
 
 > O túnel é só para expor o ambiente — não substitui a stack fixa do projeto
 > (TypeScript + PostgreSQL) nem move nada para a infraestrutura da Cloudflare.
