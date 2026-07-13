@@ -42,6 +42,36 @@ services:
     depends_on:
       - api
 
+  # Cloudflare Tunnel — expõe o ambiente local publicamente, sem abrir portas no
+  # roteador. Não sobe com o `docker compose up` normal (fica atrás de um profile).
+  #
+  # Modo rápido (sem conta/domínio, gera uma URL aleatória *.trycloudflare.com):
+  #   docker compose --profile tunnel up cloudflared
+  #
+  # Modo nomeado (domínio próprio; crie o túnel e as "Public Hostnames" no painel
+  # Cloudflare Zero Trust, copie o token e coloque em CLOUDFLARE_TUNNEL_TOKEN no .env):
+  #   docker compose --profile tunnel up cloudflared
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    profiles: ['tunnel']
+    entrypoint: ['/bin/sh', '-c']
+    command:
+      - |
+        if [ -n "$$CLOUDFLARE_TUNNEL_TOKEN" ]; then
+          echo "Iniciando túnel nomeado..."
+          cloudflared tunnel --no-autoupdate run --token "$$CLOUDFLARE_TUNNEL_TOKEN"
+        else
+          echo "Iniciando túnel rápido para $${CLOUDFLARE_TUNNEL_URL:-http://web:5173}..."
+          cloudflared tunnel --no-autoupdate --url "$${CLOUDFLARE_TUNNEL_URL:-http://web:5173}"
+        fi
+    environment:
+      CLOUDFLARE_TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN:-}
+      CLOUDFLARE_TUNNEL_URL: ${CLOUDFLARE_TUNNEL_URL:-http://web:5173}
+    depends_on:
+      - web
+      - api
+
 volumes:
   postgres_data:
   api_node_modules:
