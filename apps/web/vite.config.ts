@@ -6,6 +6,9 @@ export default defineConfig({
   server: {
     port: 5173,
     host: true,
+    // Túnel rápido do Cloudflare (docker-compose.yml, profile "tunnel") gera um
+    // subdomínio aleatório *.trycloudflare.com a cada execução.
+    allowedHosts: ['.trycloudflare.com'],
     watch: {
       usePolling: true,
       interval: 300,
